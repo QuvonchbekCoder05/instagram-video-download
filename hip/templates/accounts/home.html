@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Video Downloader</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #833ab4;
+            --secondary: #fd1d1d;
+            --gradient: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045);
+        }
+
+        body {
+            min-height: 100vh;
+            background: #111;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .url-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #fff;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(131, 58, 180, 0.5);
+            color: #fff;
+        }
+
+        .gradient-btn {
+            background: var(--gradient);
+            border: none;
+            border-radius: 15px;
+            color: #fff;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(131, 58, 180, 0.5);
+        }
+
+        .video-preview {
+            max-width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .video-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .social-icons a {
+            color: #fff;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            color: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .download-btn {
+            background: var(--gradient);
+            border: none;
+            border-radius: 15px;
+            color: #fff;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            margin-top: 1rem;
+            display: none;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(131, 58, 180, 0.5);
+        }
+
+        .error-message {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 20%, #111 80%);
+            animation: pulse 4s linear infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div id="particles-js"></div>
+
+    <div class="container py-5">
+        <div class="text-center mb-5" data-aos="fade-down">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fab fa-instagram text-gradient me-2"></i>
+                Instagram Video Downloader
+            </h1>
+            <p class="lead">Instagramdagi videolarni yuqori sifatda yuklab oling</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="glass-container" data-aos="fade-up">
+                    <form id="downloadForm" class="mb-4">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control url-input" id="videoUrl" 
+                                placeholder="Instagram video URL ni kiriting..." required>
+                            <button type="submit" class="gradient-btn">
+                                <i class="fas fa-search me-2"></i>Ko'rish
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="loader"></div>
+                    <div class="error-message"></div>
+
+                    <div class="video-preview">
+                        <video id="previewVideo" controls class="w-100">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+
+                    <div class="video-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><i class="fas fa-heart text-danger"></i> <span id="likeCount">0</span> likes</p>
+                                <p><i class="fas fa-comment text-primary"></i> <span id="commentCount">0</span> comments</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><i class="fas fa-calendar-alt text-success"></i> <span id="postDate"></span></p>
+                            </div>
+                        </div>
+                        <p class="mt-3"><i class="fas fa-closed-captioning text-info"></i> <span id="caption"></span></p>
+                    </div>
+
+                    <button class="download-btn" id="downloadBtn">
+                        <i class="fas fa-download me-2"></i>Videoni yuklab olish
+                    </button>
+                </div>
+
+                <div class="text-center mt-4" data-aos="fade-up" data-aos-delay="200">
+                    <h5 class="mb-3">Bizni kuzatib boring</h5>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init();
+
+        // Initialize Particles.js
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
+                opacity: {
+                    value: 0.5,
+                    random: true,
+                    animation: { enable: true, speed: 1, minimumValue: 0.1, sync: false }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    animation: { enable: true, speed: 2, minimumValue: 0.1, sync: false }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#ffffff",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: false,
+                    straight: false,
+                    outMode: "out",
+                    bounce: false,
+                }
+            },
+            interactivity: {
+                detectsOn: "canvas",
+                events: {
+                    onHover: { enable: true, mode: "repulse" },
+                    onClick: { enable: true, mode: "push" },
+                    resize: true
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 }
+                }
+            },
+            retina_detect: true
+        });
+
+        // Form submission handling
+        document.getElementById('downloadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('videoUrl').value;
+            if (!url) {
+                showError('URLni kiriting!');
+                return;
+            }
+
+            showLoader();
+            hideError();
+
+            // Preview video request
+            fetch('/preview/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `url=${encodeURIComponent(url)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoader();
+                if (data.success) {
+                    showVideoPreview(data);
+                } else {
+                    showError(data.error || 'Video yuklab olishda xatolik yuz berdi');
+                }
+            })
+            .catch(error => {
+                hideLoader();
+                showError('Server bilan bog\'lanishda xatolik yuz berdi');
+            });
+        });
+
+        // Download button click handling
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const video = document.getElementById('previewVideo');
+            if (video.src) {
+                fetch('/download/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: `video_url=${encodeURIComponent(video.src)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.download_url;
+                        Swal.fire({
+                            title: 'Muvaffaqiyatli!',
+                            text: 'Video yuklab olindi va uni qurilmangizda media papkasidan topasiz !',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        showError(data.error || 'Yuklab olishda xatolik');
+                    }
+                })
+                .catch(error => {
+                    showError('Server bilan bog\'lanishda xatolik');
+                });
+            }
+        });
+
+        // Utility functions
+        function showLoader() {
+            document.querySelector('.loader').style.display = 'block';
+        }
+
+        function hideLoader() {
+            document.querySelector('.loader').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.querySelector('.error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.querySelector('.error-message').style.display = 'none';
+        }
+
+        function showVideoPreview(data) {
+            const video = document.getElementById('previewVideo');
+            video.src = data.video_url;
+            document.querySelector('.video-preview').style.display = 'block';
+            document.querySelector('.video-info').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'block';
+
+            // Update video info
+            document.getElementById('likeCount').textContent = data.likes;
+            document.getElementById('commentCount').textContent = data.comments;
+            document.getElementById('postDate').textContent = new Date(data.date).toLocaleDateString();
+            document.getElementById('caption').textContent = data.caption || 'No caption';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
