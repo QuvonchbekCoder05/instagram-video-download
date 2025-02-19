@@ -33,6 +33,10 @@ DEBUG = env.bool('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
 
 # Application definition
 
@@ -88,10 +92,14 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'instagram',
+        'USER': 'posstgres',
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),  # Parolni atrof-muhit o'zgaruvchisidan olish
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
-}
+
 
 
 # Password validation
